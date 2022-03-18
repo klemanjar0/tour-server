@@ -2,6 +2,7 @@ import User from './user.model';
 import { HTTPError } from '../utils/entities';
 import ErrorService, { ERROR } from '../utils/errors';
 import { UserService } from './user.service';
+import { IAuthData, UserRoles } from './entity';
 
 const validEmail =
   /^([a-z0-9_-]+\.)*[a-z0-9_-]+@[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,6}$/;
@@ -19,6 +20,10 @@ export const validateUser = async (
   user: User,
   userService: UserService,
 ): Promise<HTTPError> => {
+  if (!user) {
+    return ErrorService.getError(ERROR.INVALID_ENTITY);
+  }
+
   if (user.email) {
     if (!isValidEmail(user.email)) {
       return ErrorService.getError(ERROR.INVALID_EMAIL);
@@ -45,4 +50,42 @@ export const validateUser = async (
   }
 
   return ErrorService.getError(ERROR.NO_ERROR);
+};
+
+export const validateAuthData = (data: IAuthData) => {
+  if (data) {
+    if (!data.email) {
+      ErrorService.getError(ERROR.EMPTY_EMAIL);
+    }
+    if (!data.password) {
+      ErrorService.getError(ERROR.EMPTY_PASSWORD);
+    }
+  } else {
+    return ErrorService.getError(ERROR.INVALID_ENTITY);
+  }
+
+  return ErrorService.getError(ERROR.NO_ERROR);
+};
+
+export const isInstanceOfHTTPError = (object: any): object is HTTPError => {
+  return 'errorCode' in object;
+};
+
+export const getAdminUser = (): Partial<User> | HTTPError => {
+  const username = process.env.SUPER_ADMIN_LOGIN;
+  const email = process.env.SUPER_ADMIN_EMAIL;
+  const password = process.env.SUPER_ADMIN_PASSWORD;
+
+  if (!username || !email || !password) {
+    return ErrorService.getError(ERROR.ENV_ERROR);
+  }
+
+  const user: Partial<User> = {
+    email: email,
+    username: username,
+    pwdHash: password,
+    role: UserRoles.SUPER_ADMIN,
+  };
+
+  return user;
 };

@@ -1,3 +1,5 @@
+import User from './user.model';
+
 export enum UserRoles {
   SUPER_ADMIN = 500,
   ADMIN = 400,
@@ -14,4 +16,14 @@ export interface IUser {
   role: UserRoles;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface IAuthData {
+  email: string;
+  password: string;
+}
+
+export interface ILoginResponse {
+  profile: User;
+  authToken: string;
 }
