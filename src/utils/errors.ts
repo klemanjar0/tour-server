@@ -16,6 +16,8 @@ export enum ERROR {
   NOT_UNIQUE_USERNAME = 1007,
   VALIDATION_ERROR = 1008,
   USER_NOT_FOUND = 1009,
+  NO_PERMISSION_FOR_ROLES = 2000,
+  ENTITY_DUBLICATE = 2001,
   INCORRECT_PASSWORD = 4001,
   ENV_ERROR = 5000,
 }
@@ -36,6 +38,8 @@ export const errors: Record<number, string> = {
   1007: 'User with given username already exists.',
   1008: 'JSON-web-token validation failed.',
   1009: 'User with given email or username not found.',
+  2000: 'User is not allowed to give roles and add users.',
+  2001: 'Entity already exists.',
   4001: 'Password is incorrect.',
   5000: '.env file is not fullfiled',
 };

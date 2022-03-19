@@ -16,6 +16,7 @@ import { isInstanceOfHTTPError } from '../user/user.utils';
 import { UserService } from '../user/user.service';
 import { userExists } from '../utils/utils';
 import ErrorService, { ERROR } from '../utils/errors';
+import { EventRoles } from './entity';
 
 @Controller('events')
 export class EventController {
@@ -37,5 +38,51 @@ export class EventController {
       return res.status(HttpStatus.BAD_REQUEST).json(entity);
     }
     return res.status(HttpStatus.OK).json(entity);
+  }
+
+  @Post('addUserToEvent')
+  async addUserToEvent(
+    @Res() res: Response,
+    @Body() body: { eventId: number; userId: number; role: EventRoles },
+  ) {
+    const userId = getLocalUser(res).id;
+    if (!(await userExists(userId, this.userService))) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
+    }
+
+    const hasPermissionToChangeRoles =
+      await this.eventService.checkUserCanAddGivenRole(userId, body.eventId);
+
+    if (!hasPermissionToChangeRoles) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(ErrorService.getError(ERROR.NO_PERMISSION_FOR_ROLES));
+    }
+
+    const response = await this.eventService.addUserToEvent(
+      body.eventId,
+      body.userId,
+      body.role,
+    );
+
+    if (isInstanceOfHTTPError(response)) {
+      return res.status(HttpStatus.BAD_REQUEST).json(response);
+    }
+
+    return res.status(HttpStatus.OK).json(response);
+  }
+
+  @Get('myEvents')
+  async getEventsByUserId(@Res() res: Response) {
+    const userId = getLocalUser(res).id;
+    if (!(await userExists(userId, this.userService))) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
+    }
+    const response = await this.eventService.getAllUserEvents(userId);
+    return res.status(HttpStatus.OK).json(response);
   }
 }

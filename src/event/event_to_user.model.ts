@@ -7,7 +7,7 @@ import {
 } from 'sequelize-typescript';
 import User from '../user/user.model';
 import Event from './event.model';
-import { IUserToEvent } from './entity';
+import { EventRoles, IUserToEvent } from './entity';
 
 @Table({ timestamps: true })
 export default class EventToUser extends Model<IUserToEvent> {
@@ -33,4 +33,9 @@ export default class EventToUser extends Model<IUserToEvent> {
     defaultValue: true,
   })
   isActive: boolean;
+
+  @Column({
+    type: DataType.INTEGER,
+  })
+  role: EventRoles;
 }
