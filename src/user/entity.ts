@@ -1,4 +1,5 @@
 import User from './user.model';
+import Event from '../event/event.model';
 
 export enum UserRoles {
   SUPER_ADMIN = 500,
@@ -16,6 +17,7 @@ export interface IUser {
   role: UserRoles;
   createdAt: string;
   updatedAt: string;
+  events: Event[];
 }
 
 export interface IAuthData {

@@ -1,3 +1,5 @@
+import { UserRoles } from '../user/entity';
+
 export interface HTTPError {
   errorCode: number;
   description: string;
@@ -13,4 +15,9 @@ export interface IClientData {
 
 export interface IOptions {
   expiresIn: string;
+}
+
+export interface IRequestUser {
+  id: number;
+  role: UserRoles;
 }

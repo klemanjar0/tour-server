@@ -5,9 +5,12 @@ import {
   DataType,
   BeforeCreate,
   BeforeUpdate,
+  BelongsToMany,
 } from 'sequelize-typescript';
 import { IUser, UserRoles } from './entity';
 import * as bcrypt from 'bcryptjs';
+import Event from '../event/event.model';
+import EventToUser from '../event/event_to_user.model';
 
 @Table({ timestamps: true })
 export default class User extends Model<IUser> {
@@ -31,6 +34,9 @@ export default class User extends Model<IUser> {
 
   @Column({ type: DataType.INTEGER, defaultValue: UserRoles.USER })
   role!: UserRoles;
+
+  @BelongsToMany(() => Event, () => EventToUser)
+  events: Event[];
 
   private static hash(data: string) {
     return new Promise<string>((resolve, reject) => {
