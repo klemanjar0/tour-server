@@ -43,7 +43,7 @@ export class AuthController {
   async create(@Res() res: Response, @Body() user: User) {
     const error = await validateUser(user, this.userService);
     if (error.errorCode) {
-      return res.status(HttpStatus.BAD_REQUEST).json(error);
+      return res.status(HttpStatus.OK).json(error);
     } else {
       const created = await this.userService.create(user);
       return res.status(HttpStatus.CREATED).json(created);
@@ -54,7 +54,7 @@ export class AuthController {
   async login(@Res() res: Response, @Body() data: IAuthData) {
     const error = validateAuthData(data);
     if (error.errorCode) {
-      return res.status(HttpStatus.BAD_REQUEST).json(error);
+      return res.status(HttpStatus.OK).json(error);
     } else {
       const user =
         (await this.userService.getByEmail(data.email)) ||

@@ -89,15 +89,22 @@ export class EventController {
     return res.status(HttpStatus.OK).json(response);
   }
 
-  @Get('myEvents')
-  async getEventsByUserId(@Res() res: Response) {
+  @Post('myEvents')
+  async getEventsByUserId(
+    @Res() res: Response,
+    @Body() body: { start?: number; limit?: number },
+  ) {
     const userId = getLocalUser(res).id;
     if (!(await userExists(userId, this.userService))) {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
     }
-    const response = await this.eventService.getAllUserEvents(userId);
+    const response = await this.eventService.getAllUserEvents(
+      userId,
+      body?.start,
+      body?.limit,
+    );
     return res.status(HttpStatus.OK).json(response);
   }
 }

@@ -35,7 +35,7 @@ export class EventService {
     }
   }
 
-  async getAllUserEvents(userId: number) {
+  async getAllUserEvents(userId: number, start: number, limit: number) {
     return (
       (await Event.findAll({
         include: [
@@ -44,6 +44,8 @@ export class EventService {
             where: { id: userId },
           },
         ],
+        offset: start || 0,
+        limit: limit === -1 ? undefined : limit,
       })) || ([] as Event[])
     );
   }
