@@ -62,14 +62,14 @@ export class AuthController {
 
       if (!user) {
         return res
-          .status(HttpStatus.BAD_REQUEST)
+          .status(HttpStatus.OK)
           .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
       }
 
       const pwdPassed = await bcrypt.compare(data.password, user.pwdHash);
       if (!pwdPassed) {
         return res
-          .status(HttpStatus.BAD_REQUEST)
+          .status(HttpStatus.OK)
           .json(ErrorService.getError(ERROR.INCORRECT_PASSWORD));
       }
 

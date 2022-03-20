@@ -40,6 +40,21 @@ export class EventController {
     return res.status(HttpStatus.OK).json(entity);
   }
 
+  @Delete('deleteEvent/:id')
+  async deleteEvent(@Res() res: Response, @Param() params: { id: number }) {
+    const userId = getLocalUser(res).id;
+    if (!(await userExists(userId, this.userService))) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
+    }
+    const entity = await this.eventService.deleteEvent(params.id, userId);
+    if (isInstanceOfHTTPError(entity)) {
+      return res.status(HttpStatus.BAD_REQUEST).json(entity);
+    }
+    return res.status(HttpStatus.OK).json(entity);
+  }
+
   @Post('addUserToEvent')
   async addUserToEvent(
     @Res() res: Response,

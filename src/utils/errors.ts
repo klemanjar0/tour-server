@@ -49,6 +49,9 @@ class ErrorService {
   constructor() {
     this.errors = errors;
   }
+  getErrorCodes() {
+    return errors;
+  }
   getError(errorCode: number, body?: any): HTTPError {
     const error = !!this.errors[errorCode];
     if (error) {

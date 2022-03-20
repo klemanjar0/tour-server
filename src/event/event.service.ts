@@ -100,4 +100,18 @@ export class EventService {
       return ErrorService.getError(ERROR.DATABASE);
     }
   }
+
+  async deleteEvent(id: number, ownerId: number) {
+    const relation = await EventToUser.findOne({
+      where: {
+        userId: ownerId,
+        eventId: id,
+      },
+    });
+    if (relation.role >= EventRoles.OWNER) {
+      return await Event.destroy({ where: { id: id } });
+    } else {
+      return ErrorService.getError(ERROR.NO_ACCESS);
+    }
+  }
 }

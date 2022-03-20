@@ -68,7 +68,11 @@ export const validateAuthData = (data: IAuthData) => {
 };
 
 export const isInstanceOfHTTPError = (object: any): object is HTTPError => {
-  return 'errorCode' in object;
+  try {
+    return 'errorCode' in object;
+  } catch (e) {
+    return false;
+  }
 };
 
 export const getAdminUser = (): Partial<User> | HTTPError => {

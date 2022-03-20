@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import ErrorService from './utils/errors';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'tour-server is running...';
+  getErrorCodes() {
+    return ErrorService.getErrorCodes();
   }
 }
