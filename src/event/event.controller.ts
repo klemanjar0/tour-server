@@ -30,13 +30,10 @@ export class EventController {
     const userId = getLocalUser(res).id;
     if (!(await userExists(userId, this.userService))) {
       return res
-        .status(HttpStatus.BAD_REQUEST)
+        .status(HttpStatus.OK)
         .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
     }
     const entity = await this.eventService.create(event, userId);
-    if (isInstanceOfHTTPError(entity)) {
-      return res.status(HttpStatus.BAD_REQUEST).json(entity);
-    }
     return res.status(HttpStatus.OK).json(entity);
   }
 
@@ -49,9 +46,6 @@ export class EventController {
         .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
     }
     const entity = await this.eventService.deleteEvent(params.id, userId);
-    if (isInstanceOfHTTPError(entity)) {
-      return res.status(HttpStatus.BAD_REQUEST).json(entity);
-    }
     return res.status(HttpStatus.OK).json(entity);
   }
 
@@ -63,7 +57,7 @@ export class EventController {
     const userId = getLocalUser(res).id;
     if (!(await userExists(userId, this.userService))) {
       return res
-        .status(HttpStatus.BAD_REQUEST)
+        .status(HttpStatus.OK)
         .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
     }
 
@@ -72,7 +66,7 @@ export class EventController {
 
     if (!hasPermissionToChangeRoles) {
       return res
-        .status(HttpStatus.BAD_REQUEST)
+        .status(HttpStatus.OK)
         .json(ErrorService.getError(ERROR.NO_PERMISSION_FOR_ROLES));
     }
 
@@ -81,10 +75,6 @@ export class EventController {
       body.userId,
       body.role,
     );
-
-    if (isInstanceOfHTTPError(response)) {
-      return res.status(HttpStatus.BAD_REQUEST).json(response);
-    }
 
     return res.status(HttpStatus.OK).json(response);
   }
@@ -97,7 +87,7 @@ export class EventController {
     const userId = getLocalUser(res).id;
     if (!(await userExists(userId, this.userService))) {
       return res
-        .status(HttpStatus.BAD_REQUEST)
+        .status(HttpStatus.OK)
         .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
     }
     const response = await this.eventService.getAllUserEvents(
