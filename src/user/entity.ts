@@ -18,6 +18,7 @@ export interface IUser {
   createdAt: string;
   updatedAt: string;
   events: Event[];
+  fileId?: number;
 }
 
 export interface IAuthData {

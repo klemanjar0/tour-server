@@ -6,11 +6,13 @@ import {
   BeforeCreate,
   BeforeUpdate,
   BelongsToMany,
+  ForeignKey,
 } from 'sequelize-typescript';
 import { IUser, UserRoles } from './entity';
 import * as bcrypt from 'bcryptjs';
 import Event from '../event/event.model';
 import EventToUser from '../event/event_to_user.model';
+import File from '../database/file.model';
 
 @Table({ timestamps: true })
 export default class User extends Model<IUser> {
@@ -34,6 +36,10 @@ export default class User extends Model<IUser> {
 
   @Column({ type: DataType.INTEGER, defaultValue: UserRoles.USER })
   role!: UserRoles;
+
+  @ForeignKey(() => File)
+  @Column({ type: DataType.INTEGER, allowNull: true })
+  fileId: number;
 
   @BelongsToMany(() => Event, () => EventToUser)
   events: Event[];
