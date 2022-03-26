@@ -18,6 +18,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(setUserIdToLocals)
-      .forRoutes({ path: 'upload-file', method: RequestMethod.POST });
+      .forRoutes({ path: 'any', method: RequestMethod.GET });
   }
 }

@@ -5,12 +5,13 @@ import {
   Param,
   Post,
   Res,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { AppService } from './app.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 @Controller()
 export class AppController {
@@ -21,9 +22,10 @@ export class AppController {
     return this.appService.getErrorCodes();
   }
 
-  @Get('image/:id')
-  async getImage(@Param() id: number): Promise<ArrayBuffer | null> {
-    return (await this.appService.getFile(id)).data || null;
+  @Get('file/:id')
+  async getImage(@Param() { id }: { id: number }, @Res() res: Response) {
+    const file = await this.appService.getFile(id);
+    return res.status(HttpStatus.OK).send(file.data);
   }
 
   @Post('upload-file')
