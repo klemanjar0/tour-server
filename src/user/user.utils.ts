@@ -3,6 +3,7 @@ import { HTTPError } from '../utils/entities';
 import ErrorService, { ERROR } from '../utils/errors';
 import { UserService } from './user.service';
 import { IAuthData, UserRoles } from './entity';
+import * as bcrypt from 'bcryptjs';
 
 const validEmail =
   /^([a-z0-9_-]+\.)*[a-z0-9_-]+@[a-z0-9_-]+(\.[a-z0-9_-]+)*\.[a-z]{2,6}$/;
@@ -14,6 +15,27 @@ export const isValidEmail = (email: string) => {
 
 export const isValidPassword = (password: string) => {
   return validPassword.test(password);
+};
+
+export const validatePassword = async (
+  password: string,
+  oldPassword: string,
+  userId: number,
+  userService: UserService,
+) => {
+  const user = await userService.getById(userId);
+  const pwdPassed = await bcrypt.compare(oldPassword, user.pwdHash);
+  if (!pwdPassed) {
+    return ErrorService.getError(ERROR.INCORRECT_PASSWORD);
+  }
+  if (password) {
+    if (!isValidPassword(password)) {
+      return ErrorService.getError(ERROR.INVALID_PASSWORD);
+    }
+  } else {
+    return ErrorService.getError(ERROR.EMPTY_PASSWORD);
+  }
+  return ErrorService.getError(ERROR.NO_ERROR);
 };
 
 export const validateUser = async (
@@ -73,6 +95,35 @@ export const isInstanceOfHTTPError = (object: any): object is HTTPError => {
   } catch (e) {
     return false;
   }
+};
+
+export const validateUserForUpdate = async (
+  user: User,
+  userId: number,
+  userService: UserService,
+): Promise<HTTPError> => {
+  if (!user) {
+    return ErrorService.getError(ERROR.INVALID_ENTITY);
+  }
+
+  if (user.email) {
+    if (!isValidEmail(user.email)) {
+      return ErrorService.getError(ERROR.INVALID_EMAIL);
+    }
+  } else {
+    return ErrorService.getError(ERROR.EMPTY_EMAIL);
+  }
+
+  const instance = await userService.getByEmail(user.email);
+  if (instance && instance.id !== userId) {
+    return ErrorService.getError(ERROR.NOT_UNIQUE_EMAIL);
+  }
+  const instance$ = await userService.getByUsername(user.username);
+  if (instance$ && instance$.id !== userId) {
+    return ErrorService.getError(ERROR.NOT_UNIQUE_USERNAME);
+  }
+
+  return ErrorService.getError(ERROR.NO_ERROR);
 };
 
 export const getAdminUser = (): Partial<User> | HTTPError => {

@@ -24,6 +24,7 @@
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
+    "@sequelize/core": "^7.0.0-alpha.10",
     "@types/lodash": "^4.14.180",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.0.0",

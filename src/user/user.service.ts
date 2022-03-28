@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import User from './user.model';
+import { omit } from 'lodash';
+import { FindUsersOptions, IUser } from './entity';
+import { Op } from '@sequelize/core';
 
 @Injectable()
 export class UserService {
@@ -15,6 +18,17 @@ export class UserService {
   async getByUsername(username: string): Promise<User | null> {
     return await User.findOne({ where: { username: username } });
   }
+  async findUsers(options: FindUsersOptions): Promise<Array<User> | []> {
+    const { searchQuery, fieldName, limit = undefined } = options;
+    return await User.findAll({
+      where: {
+        [fieldName]: {
+          [Op.iLike as unknown as string]: `%${searchQuery}%` as string,
+        },
+      },
+      limit: limit,
+    });
+  }
   async getByEmail(email: string): Promise<User | null> {
     return await User.findOne({ where: { email: email } });
   }
@@ -26,8 +40,21 @@ export class UserService {
     });
   }
   async update(id: number, user: User): Promise<[affectedCount: number]> {
-    return await User.update(user, {
+    const userButPassword = omit(user, ['pwdHash']);
+    return await User.update(userButPassword, {
       where: { id: id },
     });
+  }
+  async updatePassword(
+    id: number,
+    newPassword: string,
+  ): Promise<[affectedCount: number]> {
+    return await User.update(
+      { pwdHash: newPassword },
+      {
+        where: { id: id },
+        individualHooks: true,
+      },
+    );
   }
 }

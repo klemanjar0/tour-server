@@ -30,3 +30,11 @@ export interface ILoginResponse {
   profile: User;
   authToken: string;
 }
+
+type Field = keyof IUser | string;
+
+export interface FindUsersOptions {
+  fieldName: Field;
+  searchQuery: string;
+  limit: number;
+}

@@ -6,6 +6,7 @@ import {
   BeforeCreate,
   BeforeUpdate,
   BelongsToMany,
+  HasMany,
   ForeignKey,
 } from 'sequelize-typescript';
 import { IUser, UserRoles } from './entity';
@@ -13,6 +14,7 @@ import * as bcrypt from 'bcryptjs';
 import Event from '../event/event.model';
 import EventToUser from '../event/event_to_user.model';
 import File from '../database/file.model';
+import Notification from "../notifications/notification.model";
 
 @Table({ timestamps: true })
 export default class User extends Model<IUser> {
@@ -44,7 +46,10 @@ export default class User extends Model<IUser> {
   @BelongsToMany(() => Event, () => EventToUser)
   events: Event[];
 
-  private static hash(data: string) {
+  @HasMany(() => Notification)
+  notifications: Notification[];
+
+  public static hash(data: string) {
     return new Promise<string>((resolve, reject) => {
       bcrypt.hash(data, 10, (err, hash) => {
         if (err) {
@@ -59,6 +64,8 @@ export default class User extends Model<IUser> {
   @BeforeUpdate
   @BeforeCreate
   static async hashPassword(instance: User) {
-    instance.pwdHash = await this.hash(instance.pwdHash);
+    if (instance?.pwdHash) {
+      instance.pwdHash = await this.hash(instance.pwdHash);
+    }
   }
 }
