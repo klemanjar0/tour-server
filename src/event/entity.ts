@@ -25,6 +25,7 @@ export interface IEvent {
   country: string;
   prizeFund: number;
   status: EventStatuses;
+  twitchUrl?: string;
   createdAt: string;
   updatedAt: string;
   users: User[];
