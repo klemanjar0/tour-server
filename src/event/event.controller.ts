@@ -97,4 +97,11 @@ export class EventController {
     );
     return res.status(HttpStatus.OK).json(response);
   }
+
+  @Post('getMaxPrize')
+  async getMaxPrize(@Res() res: Response) {
+    const userId = getLocalUser(res).id;
+    const response = await this.eventService.getMyMaxPrize(userId);
+    return res.status(HttpStatus.OK).json(response);
+  }
 }

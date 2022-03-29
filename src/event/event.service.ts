@@ -6,6 +6,7 @@ import { Transaction } from 'sequelize';
 import User from '../user/user.model';
 import ErrorService, { ERROR } from '../utils/errors';
 import { EventRoles } from './entity';
+import { maxBy } from 'lodash';
 
 @Injectable()
 export class EventService {
@@ -115,5 +116,17 @@ export class EventService {
     } else {
       return ErrorService.getError(ERROR.NO_ACCESS);
     }
+  }
+
+  async getMyMaxPrize(userId: number) {
+    const events = await Event.findAll({
+      include: [
+        {
+          model: User,
+          where: { id: userId },
+        },
+      ],
+    }); // issue, investigate how to use max in many-to-many assotiations
+    return maxBy(events, 'prizeFund')?.prizeFund;
   }
 }
