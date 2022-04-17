@@ -104,4 +104,10 @@ export class EventController {
     const response = await this.eventService.getMyMaxPrize(userId);
     return res.status(HttpStatus.OK).json(response);
   }
+
+  @Post('getEventUsers')
+  async getEventUsers(@Res() res: Response, @Body() body: { eventId: number }) {
+    const response = await this.eventService.getEventUsers(body.eventId);
+    return res.status(HttpStatus.OK).json(response);
+  }
 }

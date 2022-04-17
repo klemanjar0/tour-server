@@ -129,4 +129,8 @@ export class EventService {
     }); // issue, investigate how to use max in many-to-many assotiations
     return maxBy(events, 'prizeFund')?.prizeFund;
   }
+
+  async getEventUsers(id: number) {
+    return (await Event.findOne({ include: User, where: { id: id } })).users;
+  }
 }
