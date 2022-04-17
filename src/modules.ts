@@ -4,6 +4,7 @@ import { EventModule } from './event/event.module';
 import { UserManageModule } from './user/user-manage.module';
 import { NotificationModule } from './notifications/notification.module';
 import { SocketModule } from './socket';
+import { InviteModule } from './invite/invite.module';
 
 export default [
   UserModule,
@@ -12,4 +13,5 @@ export default [
   UserManageModule,
   NotificationModule,
   SocketModule,
+  InviteModule,
 ];

@@ -18,6 +18,7 @@ export enum ERROR {
   USER_NOT_FOUND = 1009,
   NO_PERMISSION_FOR_ROLES = 2000,
   ENTITY_DUBLICATE = 2001,
+  INVITE_ALREADY_CREATED = 2002,
   INCORRECT_PASSWORD = 4001,
   ENV_ERROR = 5000,
 }
@@ -40,6 +41,7 @@ export const errors: Record<number, string> = {
   1009: 'User with given email or username not found.',
   2000: 'User is not allowed to give roles and add users.',
   2001: 'Entity already exists.',
+  2002: 'Invite to this user for this event has been already created.',
   4001: 'Password is incorrect.',
   5000: '.env file is not fullfiled',
 };

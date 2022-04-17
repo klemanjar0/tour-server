@@ -27,6 +27,16 @@ export class UserManageController {
     return res.status(HttpStatus.OK).json(users);
   }
 
+  @Post('findUserNames')
+  async findUserNames(
+    @Res() res: Response,
+    @Body() { query }: { query: string },
+  ) {
+    const userId = getLocalUser(res).id;
+    const users = await this.userService.findUserNames(query, userId);
+    return res.status(HttpStatus.OK).json(users);
+  }
+
   @Put('update-metadata')
   async updateMetadata(@Res() res: Response, @Body() user: User) {
     const userId = getLocalUser(res).id;

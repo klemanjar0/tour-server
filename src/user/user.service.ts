@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import User from './user.model';
-import { omit } from 'lodash';
+import { omit, map, filter } from 'lodash';
 import { FindUsersOptions, IUser } from './entity';
 import { Op } from '@sequelize/core';
 
@@ -17,6 +17,21 @@ export class UserService {
   }
   async getByUsername(username: string): Promise<User | null> {
     return await User.findOne({ where: { username: username } });
+  }
+  async findUserNames(query: string, userId: number): Promise<string[]> {
+    const users = await User.findAll({
+      where: {
+        username: {
+          [Op.like as unknown as string]: `%${query}%`,
+        },
+      },
+      limit: 10,
+    });
+
+    return map(
+      filter(users, (user) => user.id !== userId),
+      (user) => user.username,
+    );
   }
   async findUsers(options: FindUsersOptions): Promise<Array<User> | []> {
     const { searchQuery, fieldName, limit = undefined } = options;

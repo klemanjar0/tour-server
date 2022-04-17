@@ -6,9 +6,8 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-
-const socketsById = { 0: [] };
-const idBySocket = {};
+import JwtService from '../shared/jwt.service';
+import { socketActions } from './constants';
 
 @WebSocketGateway(80, { cors: true })
 export class SocketGateway {
@@ -16,22 +15,46 @@ export class SocketGateway {
   server: Server;
 
   async handleConnection(socket: Socket) {
-    console.log(socket.id);
-    socket.emit('SOCKET_CHANGES', { hello: 'world' });
+    socket.emit(socketActions.socketChanges, {
+      message: 'Socket connection established',
+    });
+    try {
+      await this.authenticate(socket, socket.handshake.auth.authToken);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
-  @SubscribeMessage('SET_ID_SOCKET')
+  async emitNotification(userId: string | number, notification: any) {
+    this.server
+      .in(`user:${userId}`)
+      .emit(socketActions.notification, notification);
+  }
+
+  async emitInvitation(userId: string | number, invite: any) {
+    this.server.in(`user:${userId}`).emit(socketActions.invite, invite);
+  }
+
+  async authenticate(socket: Socket, authToken?: string) {
+    if (authToken) {
+      const clientData = await JwtService.decodeJwt(authToken);
+      const userId = `user:${clientData.id}`;
+      socket.join(userId);
+      this.server.in(userId).emit(socketActions.socketChanges, {
+        message: `Successfully logged with id: ${userId}, role: ${clientData.role}`,
+      });
+    }
+  }
+
+  @SubscribeMessage(socketActions.setId)
   async handleEvent(
-    @MessageBody() { id, authToken }: { id: number; authToken: string },
+    @MessageBody() { authToken }: { authToken: string },
     @ConnectedSocket() socket: Socket,
   ) {
-    console.log(socket.id);
-    console.log('------');
-    console.log(socket.handshake.auth);
-    console.log('------');
-    socket.emit('SOCKET_CHANGES', {
-      message: `Successfully logged with id: ${id}`,
-      token: authToken,
-    });
+    try {
+      await this.authenticate(socket, authToken);
+    } catch (e) {
+      console.log(e);
+    }
   }
 }
