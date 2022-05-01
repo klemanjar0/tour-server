@@ -1,13 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import User from './user.model';
 import { omit, map, filter } from 'lodash';
-import { FindUsersOptions, IUser } from './entity';
+import { FindUsersOptions } from './entity';
 import { Op } from '@sequelize/core';
+import sequelize from '../database';
+import { Transaction } from 'sequelize';
+import ErrorService, { ERROR } from '../utils/errors';
+import { HTTPError } from '../utils/entities';
+import Balance from '../balance/balance.model';
 
 @Injectable()
 export class UserService {
-  async create(user: User): Promise<User | null> {
-    return await User.create(user);
+  async create(user: User): Promise<User | HTTPError | null> {
+    try {
+      return await sequelize.transaction(async (t: Transaction) => {
+        const data = await User.create(user, { transaction: t });
+        await Balance.create({ userId: data.id }, { transaction: t });
+        return data;
+      });
+    } catch (e: any) {
+      return ErrorService.getError(ERROR.DATABASE);
+    }
   }
   async getAll(): Promise<Array<User> | []> {
     return await User.findAll();

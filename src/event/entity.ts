@@ -28,6 +28,8 @@ export interface IEvent {
   twitchUrl?: string;
   createdAt: string;
   updatedAt: string;
+  winnerId?: number;
+  winner: User;
   users: User[];
 }
 

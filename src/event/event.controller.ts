@@ -7,6 +7,8 @@ import {
   Param,
   Res,
   Body,
+  Patch,
+  Put,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { EventService } from './event.service';
@@ -16,7 +18,7 @@ import { isInstanceOfHTTPError } from '../user/user.utils';
 import { UserService } from '../user/user.service';
 import { userExists } from '../utils/utils';
 import ErrorService, { ERROR } from '../utils/errors';
-import { EventRoles } from './entity';
+import { EventRoles, EventStatuses } from './entity';
 
 @Controller('events')
 export class EventController {
@@ -79,6 +81,59 @@ export class EventController {
     return res.status(HttpStatus.OK).json(response);
   }
 
+  @Get('get/:id')
+  async getById(@Res() res: Response, @Param() params: { id: number }) {
+    const userId = getLocalUser(res).id;
+    const response = await this.eventService.getById(params.id, userId);
+    return res.status(HttpStatus.OK).json(response);
+  }
+
+  @Patch('updateStatus')
+  async updateStatus(
+    @Res() res: Response,
+    @Body() body: { eventId: number; status: EventStatuses },
+  ) {
+    const userId = getLocalUser(res).id;
+    const isAdmin = await this.eventService.isAdminOnEvent(
+      userId,
+      body.eventId,
+    );
+    if (isAdmin) {
+      const response = await this.eventService.updateStatus(
+        body.eventId,
+        body.status,
+      );
+      return res.status(HttpStatus.OK).json(response);
+    } else {
+      return res
+        .status(HttpStatus.OK)
+        .json(ErrorService.getError(ERROR.NO_PERMISSION_TO_REMOVE_FROM_EVENT));
+    }
+  }
+
+  @Put('setWinner')
+  async setWinner(
+    @Res() res: Response,
+    @Body() body: { eventId: number; userId: number },
+  ) {
+    const userId = getLocalUser(res).id;
+    const isAdmin = await this.eventService.isAdminOnEvent(
+      userId,
+      body.eventId,
+    );
+    if (isAdmin) {
+      const response = await this.eventService.setWinner(
+        body.userId,
+        body.eventId,
+      );
+      return res.status(HttpStatus.OK).json(response);
+    } else {
+      return res
+        .status(HttpStatus.OK)
+        .json(ErrorService.getError(ERROR.NO_PERMISSION_TO_REMOVE_FROM_EVENT));
+    }
+  }
+
   @Post('myEvents')
   async getEventsByUserId(
     @Res() res: Response,
@@ -109,5 +164,30 @@ export class EventController {
   async getEventUsers(@Res() res: Response, @Body() body: { eventId: number }) {
     const response = await this.eventService.getEventUsers(body.eventId);
     return res.status(HttpStatus.OK).json(response);
+  }
+
+  @Post('removeUserFromEvent')
+  async removeUserFromEvent(
+    @Res() res: Response,
+    @Body() body: { eventId: number; userId: number },
+  ) {
+    const myId = getLocalUser(res).id;
+    const canBeRemoved = await this.eventService.canUserBeRemoved(
+      myId,
+      body.userId,
+      body.eventId,
+    );
+
+    if (canBeRemoved) {
+      const response = await this.eventService.removeUserFromEvent(
+        body.userId,
+        body.eventId,
+      );
+      return res.status(HttpStatus.OK).json(response);
+    } else {
+      return res
+        .status(HttpStatus.OK)
+        .json(ErrorService.getError(ERROR.NO_PERMISSION_TO_REMOVE_FROM_EVENT));
+    }
   }
 }

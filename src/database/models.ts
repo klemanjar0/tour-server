@@ -4,6 +4,7 @@ import EventToUserModel from '../event/event_to_user.model';
 import FileModel from './file.model';
 import NotificationModel from '../notifications/notification.model';
 import InviteModel from '../invite/invite.model';
+import BalanceModel from '../balance/balance.model';
 
 export default [
   UserModel,
@@ -12,4 +13,5 @@ export default [
   FileModel,
   NotificationModel,
   InviteModel,
+  BalanceModel,
 ];

@@ -5,7 +5,7 @@ import sequelize from '../database';
 import { Transaction } from 'sequelize';
 import User from '../user/user.model';
 import ErrorService, { ERROR } from '../utils/errors';
-import { EventRoles } from './entity';
+import { EventRoles, EventStatuses } from './entity';
 import { maxBy } from 'lodash';
 
 @Injectable()
@@ -34,6 +34,52 @@ export class EventService {
     } catch (e: any) {
       return ErrorService.getError(ERROR.DATABASE);
     }
+  }
+
+  async getById(id: number, userId: number) {
+    const event = await Event.findOne({ where: { id: id } });
+    const relation = await EventToUser.findOne({
+      where: { eventId: id, userId: userId },
+    });
+    return {
+      ...event.toJSON(),
+      myRole: relation.role,
+      isActive: relation.isActive,
+    };
+  }
+
+  async isAdminOnEvent(userId: number, eventId: number) {
+    const relation = await EventToUser.findOne({
+      where: { userId: userId, eventId: eventId },
+    });
+
+    return relation.role >= EventRoles.OWNER;
+  }
+
+  async updateStatus(eventId: number, status: EventStatuses) {
+    return await Event.update(
+      {
+        status: status,
+      },
+      {
+        where: {
+          id: eventId,
+        },
+      },
+    );
+  }
+
+  async setWinner(userId: number, eventId: number) {
+    return await Event.update(
+      {
+        winnerId: userId,
+      },
+      {
+        where: {
+          id: eventId,
+        },
+      },
+    );
   }
 
   async getAllUserEvents(userId: number, start: number, limit: number) {
@@ -132,5 +178,26 @@ export class EventService {
 
   async getEventUsers(id: number) {
     return (await Event.findOne({ include: User, where: { id: id } })).users;
+  }
+
+  async canUserBeRemoved(
+    userId: number,
+    idToRemove: number,
+    eventId: number,
+  ): Promise<boolean> {
+    const userRoleInEvent = await EventToUser.findOne({
+      where: { userId: userId, eventId: eventId },
+    });
+
+    return userRoleInEvent.role >= EventRoles.OWNER || userId === idToRemove;
+  }
+
+  async removeUserFromEvent(userId: number, eventId: number) {
+    return await EventToUser.destroy({
+      where: {
+        userId: userId,
+        eventId: eventId,
+      },
+    });
   }
 }

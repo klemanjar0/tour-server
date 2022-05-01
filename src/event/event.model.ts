@@ -4,6 +4,8 @@ import {
   Model,
   DataType,
   BelongsToMany,
+  ForeignKey,
+  BelongsTo,
 } from 'sequelize-typescript';
 import { EventStatuses, IEvent } from './entity';
 import EventToUser from './event_to_user.model';
@@ -43,6 +45,10 @@ export default class Event extends Model<IEvent> {
 
   @Column({ type: DataType.TEXT })
   twitchUrl: string;
+
+  @ForeignKey(() => User)
+  @Column
+  winnerId?: number;
 
   @BelongsToMany(() => User, () => EventToUser)
   users: User[];
