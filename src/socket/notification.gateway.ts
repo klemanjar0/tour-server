@@ -35,6 +35,10 @@ export class SocketGateway {
     this.server.in(`user:${userId}`).emit(socketActions.invite, invite);
   }
 
+  async emitBalanceUpdate(userId: string | number) {
+    this.server.in(`user:${userId}`).emit(socketActions.balance);
+  }
+
   async authenticate(socket: Socket, authToken?: string) {
     if (authToken) {
       const clientData = await JwtService.decodeJwt(authToken);

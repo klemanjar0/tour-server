@@ -19,12 +19,14 @@ import { UserService } from '../user/user.service';
 import { userExists } from '../utils/utils';
 import ErrorService, { ERROR } from '../utils/errors';
 import { EventRoles, EventStatuses } from './entity';
+import { SocketGateway } from '../socket/notification.gateway';
 
 @Controller('events')
 export class EventController {
   constructor(
     private readonly eventService: EventService,
     private readonly userService: UserService,
+    private readonly socketService: SocketGateway,
   ) {}
 
   @Post('create')
@@ -48,6 +50,9 @@ export class EventController {
         .json(ErrorService.getError(ERROR.USER_NOT_FOUND));
     }
     const entity = await this.eventService.deleteEvent(params.id, userId);
+    if ((entity as Event).id) {
+      await this.socketService.emitBalanceUpdate(userId);
+    }
     return res.status(HttpStatus.OK).json(entity);
   }
 
@@ -103,6 +108,11 @@ export class EventController {
         body.eventId,
         body.status,
       );
+      if ((response as Event).winnerId) {
+        await this.socketService.emitBalanceUpdate(
+          (response as Event).winnerId,
+        );
+      }
       return res.status(HttpStatus.OK).json(response);
     } else {
       return res

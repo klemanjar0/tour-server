@@ -14,7 +14,11 @@ export class BalanceService {
     try {
       return await sequelize.transaction(async (t: Transaction) => {
         const balance = await Balance.findByPk(id, { transaction: t });
-        balance.account += amount;
+        if (amount <= 0) {
+          throw new Error('Non valid value');
+        }
+        const initialBalance = Number(balance.account);
+        balance.account = initialBalance + Number(amount);
         await balance.save({ transaction: t });
         return balance;
       });
@@ -27,7 +31,11 @@ export class BalanceService {
     try {
       return await sequelize.transaction(async (t: Transaction) => {
         const balance = await Balance.findByPk(id, { transaction: t });
-        balance.account -= amount;
+        if (amount >= 0) {
+          throw new Error('Non valid value');
+        }
+        const initialBalance = Number(balance.account);
+        balance.account = initialBalance - Number(amount);
         if (balance.account < 0) throw new Error('Negative Balance');
         await balance.save({ transaction: t });
         return balance;

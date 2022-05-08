@@ -7,6 +7,8 @@ import User from '../user/user.model';
 import ErrorService, { ERROR } from '../utils/errors';
 import { EventRoles, EventStatuses } from './entity';
 import { maxBy } from 'lodash';
+import Balance from '../balance/balance.model';
+import { HTTPError } from '../utils/entities';
 
 @Injectable()
 export class EventService {
@@ -23,6 +25,16 @@ export class EventService {
           await EventToUser.create(relation, {
             transaction: t,
           });
+
+          const prizeValue = createdEvent.prizeFund;
+          const balance = await Balance.findOne({
+            where: { userId: userId },
+            transaction: t,
+          });
+          const initialBalance = Number(balance.account);
+          balance.account = initialBalance - Number(prizeValue);
+          if (balance.account < 0) throw new Error();
+          await balance.save({ transaction: t });
 
           return await Event.findOne({
             where: { id: createdEvent.id },
@@ -56,17 +68,39 @@ export class EventService {
     return relation.role >= EventRoles.OWNER;
   }
 
-  async updateStatus(eventId: number, status: EventStatuses) {
-    return await Event.update(
-      {
-        status: status,
-      },
-      {
-        where: {
-          id: eventId,
-        },
-      },
-    );
+  async updateStatus(
+    eventId: number,
+    status: EventStatuses,
+  ): Promise<Event | HTTPError> {
+    try {
+      return await sequelize.transaction(async (t: Transaction) => {
+        await Event.update(
+          {
+            status: status,
+          },
+          {
+            where: {
+              id: eventId,
+            },
+            transaction: t,
+          },
+        );
+        if (status === EventStatuses.CLOSED) {
+          const event = await Event.findByPk(eventId, { transaction: t });
+          const balance = await Balance.findOne({
+            where: { userId: event.winnerId },
+            transaction: t,
+          });
+          const initialBalance = Number(balance.account);
+          balance.account = initialBalance + Number(event.prizeFund);
+          await balance.save({ transaction: t });
+        }
+
+        return await Event.findByPk(eventId);
+      });
+    } catch (e) {
+      return ErrorService.getError(ERROR.DATABASE);
+    }
   }
 
   async setWinner(userId: number, eventId: number) {
@@ -151,16 +185,34 @@ export class EventService {
   }
 
   async deleteEvent(id: number, ownerId: number) {
-    const relation = await EventToUser.findOne({
-      where: {
-        userId: ownerId,
-        eventId: id,
-      },
-    });
-    if (relation.role >= EventRoles.OWNER) {
-      return await Event.destroy({ where: { id: id } });
-    } else {
-      return ErrorService.getError(ERROR.NO_ACCESS);
+    try {
+      return await sequelize.transaction(async (t: Transaction) => {
+        const relation = await EventToUser.findOne({
+          where: {
+            userId: ownerId,
+            eventId: id,
+          },
+          transaction: t,
+        });
+        if (relation.role >= EventRoles.OWNER) {
+          const event = await Event.findByPk(id, { transaction: t });
+          if (event.status < EventStatuses.CLOSED) {
+            const balance = await Balance.findOne({
+              where: { userId: ownerId },
+              transaction: t,
+            });
+            const initialBalance = Number(balance.account);
+            balance.account = initialBalance + Number(event.prizeFund);
+            await balance.save({ transaction: t });
+          }
+          await Event.destroy({ where: { id: id }, transaction: t });
+          return event;
+        } else {
+          return ErrorService.getError(ERROR.NO_ACCESS);
+        }
+      });
+    } catch (e) {
+      return ErrorService.getError(ERROR.DATABASE);
     }
   }
 

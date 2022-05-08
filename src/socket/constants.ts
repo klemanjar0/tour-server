@@ -3,4 +3,5 @@ export const socketActions = {
   setId: 'SET_ID_SOCKET',
   notification: 'NOTIFICATION',
   invite: 'INVITE',
+  balance: 'BALANCE',
 };
