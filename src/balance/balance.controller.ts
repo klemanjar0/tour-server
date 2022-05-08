@@ -29,4 +29,16 @@ export class BalanceController {
     );
     return res.status(HttpStatus.OK).json(response);
   }
+
+  @Post('withdrawal')
+  async withdrawalPayment(
+    @Res() res: Response,
+    @Body() body: { id: number; amount: number; cardNumber: string },
+  ) {
+    const response = await this.balanceService.decreaseBalance(
+      body.id,
+      body.amount,
+    );
+    return res.status(HttpStatus.OK).json(response);
+  }
 }

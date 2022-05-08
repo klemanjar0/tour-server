@@ -11,6 +11,11 @@ import { UserService } from '../user/user.service';
 })
 export class BalanceModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(setUserIdToLocals).forRoutes(BalanceController);
+    consumer
+      .apply(setUserIdToLocals, async (req, res, next) => {
+        await new Promise((r) => setTimeout(r, 1000));
+        next();
+      })
+      .forRoutes(BalanceController);
   }
 }
