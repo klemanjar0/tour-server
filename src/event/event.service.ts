@@ -114,7 +114,7 @@ export class EventService {
         },
       },
     );
-  }
+  } // п
 
   async getAllUserEvents(userId: number, start: number, limit: number) {
     return (
