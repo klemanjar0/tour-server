@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import Event from './event.model';
 import EventToUser from './event_to_user.model';
 import sequelize from '../database';
-import { Transaction } from 'sequelize';
+import Sequelize, { Transaction } from 'sequelize';
 import User from '../user/user.model';
 import ErrorService, { ERROR } from '../utils/errors';
-import { EventRoles, EventStatuses } from './entity';
+import { EventParams, EventRoles, EventStatuses } from './entity';
 import { maxBy } from 'lodash';
 import Balance from '../balance/balance.model';
 import { HTTPError } from '../utils/entities';
@@ -116,17 +116,40 @@ export class EventService {
     );
   }
 
-  async getAllUserEvents(userId: number, start: number, limit: number) {
+  async getAllUserEvents(
+    userId: number,
+    start: number,
+    limit: number,
+    searchParams?: EventParams,
+  ) {
+    const { onlyMy = false, prizeMin = null, prizeMax = null } = searchParams;
+
+    const searchOnlyMy = onlyMy
+      ? {
+          role: EventRoles.OWNER,
+        }
+      : undefined;
+
     return (
       (await Event.findAll({
         include: [
           {
             model: User,
             where: { id: userId },
+            through: {
+              attributes: ['role'],
+              where: searchOnlyMy,
+            },
           },
         ],
         offset: start || 0,
         limit: limit === -1 ? undefined : limit,
+        where: {
+          prizeFund: {
+            [Sequelize.Op.gte]: prizeMin || 0,
+            [Sequelize.Op.lte]: prizeMax || Number.MAX_SAFE_INTEGER,
+          },
+        },
       })) || ([] as Event[])
     );
   }

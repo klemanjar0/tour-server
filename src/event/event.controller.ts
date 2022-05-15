@@ -18,7 +18,7 @@ import { isInstanceOfHTTPError } from '../user/user.utils';
 import { UserService } from '../user/user.service';
 import { userExists } from '../utils/utils';
 import ErrorService, { ERROR } from '../utils/errors';
-import { EventRoles, EventStatuses } from './entity';
+import { EventParams, EventRoles, EventStatuses } from './entity';
 import { SocketGateway } from '../socket/notification.gateway';
 
 @Controller('events')
@@ -147,7 +147,8 @@ export class EventController {
   @Post('myEvents')
   async getEventsByUserId(
     @Res() res: Response,
-    @Body() body: { start?: number; limit?: number },
+    @Body()
+    body: { start?: number; limit?: number; searchParams?: EventParams },
   ) {
     const userId = getLocalUser(res).id;
     if (!(await userExists(userId, this.userService))) {
@@ -159,6 +160,7 @@ export class EventController {
       userId,
       body?.start,
       body?.limit,
+      body?.searchParams,
     );
     return res.status(HttpStatus.OK).json(response);
   }

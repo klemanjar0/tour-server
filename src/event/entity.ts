@@ -39,3 +39,9 @@ export interface IUserToEvent {
   userRole: EventRoles;
   isActive: boolean;
 }
+
+export interface EventParams {
+  onlyMy?: boolean;
+  prizeMin: number | null;
+  prizeMax: number | null;
+}
