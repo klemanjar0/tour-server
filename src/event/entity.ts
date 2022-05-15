@@ -44,4 +44,6 @@ export interface EventParams {
   onlyMy?: boolean;
   prizeMin: number | null;
   prizeMax: number | null;
+  country?: string;
+  title?: string | null;
 }

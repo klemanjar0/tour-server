@@ -122,7 +122,13 @@ export class EventService {
     limit: number,
     searchParams?: EventParams,
   ) {
-    const { onlyMy = false, prizeMin = null, prizeMax = null } = searchParams;
+    const {
+      onlyMy = false,
+      prizeMin = null,
+      prizeMax = null,
+      country = '',
+      title = '',
+    } = searchParams;
 
     const searchOnlyMy = onlyMy
       ? {
@@ -145,10 +151,24 @@ export class EventService {
         offset: start || 0,
         limit: limit === -1 ? undefined : limit,
         where: {
-          prizeFund: {
-            [Sequelize.Op.gte]: prizeMin || 0,
-            [Sequelize.Op.lte]: prizeMax || Number.MAX_SAFE_INTEGER,
-          },
+          [Sequelize.Op.and]: [
+            {
+              prizeFund: {
+                [Sequelize.Op.gte]: prizeMin || 0,
+                [Sequelize.Op.lte]: prizeMax || Number.MAX_SAFE_INTEGER,
+              },
+            },
+            {
+              country: {
+                [Sequelize.Op.iLike]: `%${country || ''}%`,
+              },
+            },
+            {
+              title: {
+                [Sequelize.Op.iLike]: `%${title || ''}%`,
+              },
+            },
+          ],
         },
       })) || ([] as Event[])
     );
